@@ -1,173 +1,172 @@
 ﻿#include <iostream>
 using namespace std;
-template <typename T>
-class Node {
-public:
-    T data;
-    Node* next;
-    Node* prev;
 
-    Node(T value) : data(value), next(nullptr), prev(nullptr) {}
-};
-
-template <typename T>
-class Deque {
+class Deque
+{
 private:
-    Node<T>* front;
-    Node<T>* back;
-    size_t size;
+    int* data;
+    int max_count;
+    int real_count;
 
 public:
-    Deque() : front(nullptr), back(nullptr), size(0) {}
-
-    void PushFront(T value) {
-        Node<T>* newNode = new Node<T>(value);
-        if (IsEmpty()) {
-            front = back = newNode;
-        }
-        else {
-            newNode->next = front;
-            front->prev = newNode;
-            front = newNode;
-        }
-        size++;
+    Deque(int max_count)
+    {
+        this->max_count = max_count;
+        data = new int[max_count];
+        real_count = 0;
     }
 
-    void PushBack(T value) {
-        Node<T>* newNode = new Node<T>(value);
-        if (IsEmpty()) {
-            front = back = newNode;
-        }
-        else {
-            newNode->prev = back;
-            back->next = newNode;
-            back = newNode;
-        }
-        size++;
+    ~Deque()
+    {
+        if (data != nullptr)
+            delete[] data;
     }
 
-    void PopFront() {
-        if (IsEmpty()) {
-            return;
-        }
-
-        Node<T>* temp = front;
-        front = front->next;
-        if (front != nullptr) {
-            front->prev = nullptr;
-        }
-        else {
-            back = nullptr;
-        }
-        delete temp;
-        size--;
+    void Clear()
+    {
+        real_count = 0;
     }
 
-    void PopBack() {
-        if (IsEmpty()) {
-            return;
+    bool IsEmpty() const
+    {
+        return real_count == 0;
+    }
+
+    bool IsFull() const
+    {
+        return real_count == max_count;
+    }
+
+    void PushFront(int value)
+    {
+        if (!IsFull())
+        {
+            for (int i = real_count; i > 0; i--)
+                data[i] = data[i - 1];
+
+            data[0] = value;
+            real_count++;
         }
+    }
 
-        Node<T>* temp = back;
-        back = back->prev;
-        if (back != nullptr) {
-            back->next = nullptr;
+    int PopFront()
+    {
+        if (!IsEmpty())
+        {
+            int first = data[0];
+            for (int i = 1; i < real_count; i++)
+                data[i - 1] = data[i];
+
+            real_count--;
+            return first;
         }
-        else {
-            front = nullptr;
+        else
+        {
+            throw "Deque is empty!";
         }
-        delete temp;
-        size--;
     }
 
-    T Front() const {
-        return front->data;
+    void PushBack(int value)
+    {
+        if (!IsFull())
+            data[real_count++] = value;
     }
 
-    T Back() const {
-        return back->data;
+    int PopBack()
+    {
+        if (!IsEmpty())
+        {
+            int last = data[real_count - 1];
+            real_count--;
+            return last;
+        }
+        else
+        {
+            throw "Deque is empty!";
+        }
     }
 
-    bool IsEmpty() const {
-        return size == 0;
-    }
-
-    size_t Size() const {
-        return size;
+    void Print() const
+    {
+        cout << "---------------------------------------\n";
+        for (int i = 0; i < real_count; i++)
+            cout << data[i] << "  ";
+        cout << "\n";
+        cout << "---------------------------------------\n";
     }
 };
 
-class Stack {
-private:
-    Node<int>* top;
-    size_t size;
-
+class Stack : public Deque
+{
 public:
-    Stack() : top(nullptr), size(0) {}
+    Stack(int max_count) : Deque(max_count) {}
 
-    void Push(int value) {
-        Node<int>* newNode = new Node<int>(value);
-        newNode->next = top;
-        top = newNode;
-        size++;
+    void Push(int value)
+    {
+        PushBack(value);
     }
 
-    void Pop() {
-        if (IsEmpty()) {
-            return;
-        }
-
-        Node<int>* temp = top;
-        top = top->next;
-        delete temp;
-        size--;
+    int Pop()
+    {
+        return PopBack();
     }
 
-    void PushBack(int value) {
-        Push(value);
-    }
-
-    void PopFront() {
-        Pop();
-    }
-
-    bool IsEmpty() const {
-        return size == 0;
-    }
-
-    size_t Size() const {
-        return size;
+    void Print() const
+    {
+        Deque::Print();
     }
 };
 
-int main() {
-    Deque<int> deque;
+int main()
+{
+    Deque deque(25);
 
-    deque.PushBack(1);
-    deque.PushFront(2);
-    deque.PushBack(3);
+    for (int i = 0; i < 5; i++)
+        deque.PushBack(rand() % 90 + 10);
 
-     cout << "Deque size: " << deque.Size() <<  endl;
-
-     cout << "Front element: " << (deque.IsEmpty() ? -1 : deque.Front()) <<  endl;
-     cout << "Back element: " << (deque.IsEmpty() ? -1 : deque.Back()) <<  endl;
+    deque.Print();
 
     deque.PopFront();
-    deque.PopBack();
 
-     cout << "Deque size after popping front and back: " << deque.Size() <<  endl;
+    deque.Print();
 
-    Stack stack;
+    for (int i = 0; i < 2; i++)
+        deque.PushBack(rand() % 90 + 10);
 
-    stack.Push(1);
-    stack.Push(2);
-    stack.Push(3);
+    deque.Print();
 
-     cout << "Stack size: " << stack.Size() <<  endl;
+    for (int i = 0; i < 3; i++)
+        deque.PopFront();
+
+    deque.Print();
+
+    Stack stack(25);
+
+    for (int i = 0; i < 5; i++)
+        stack.Push(rand() % 90 + 10);
+
+    stack.Print();
 
     stack.PopFront();
 
-     cout << "Stack size after popping front: " << stack.Size() <<  endl;
+    stack.Print();
+
+    for (int i = 0; i < 2; i++)
+        stack.Push(rand() % 90 + 10);
+
+    stack.Print();
+
+    for (int i = 0; i < 3; i++)
+        stack.PopBack();
+
+    stack.Print();
 
     return 0;
 }
+/*
+Deque реализует методы PushFront, PopFront, PushBack и PopBack.
+
+Stack унаследован от Deque.
+
+Не использованы шаблоны, размерности size_t и списки.
+*/
